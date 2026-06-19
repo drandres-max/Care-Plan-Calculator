@@ -784,9 +784,13 @@ function calcStd() {
   const isVeryLong = (dur==='years');
 
   let highCx;
-  if (age < 20)       highCx = isVeryLong;                              // <20: symptoms >1yr → 3x/wk
-  else if (age <= 50) highCx = (sublux > 5 && degen===true && isLong);  // 20–50: sublux>5 + degen + >6mo → 3x/wk
-  else                highCx = (degen===true);                           // >50: degen present → 3x/wk
+  if (office === 'mindful') {
+    if (age < 20)       highCx = isVeryLong;                              // <20: symptoms >1yr → 3x/wk
+    else if (age <= 50) highCx = (sublux > 5 && degen===true && isLong);  // 20–50: sublux>5 + degen + >6mo → 3x/wk
+    else                highCx = (degen===true);                           // >50: degen present → 3x/wk
+  } else {
+    highCx = (age > 40 && sublux >= 5 && degen===true && isLong);         // Abundance: original logic
+  }
 
   const durLabel = {days:'days', weeks:'weeks', months_s:'1–6 months', months_l:'more than 6 months', years:'years'}[dur];
   const areaLabels = areas.map(a => ({
