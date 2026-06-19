@@ -780,10 +780,13 @@ function calcStd() {
   if (!carrier)             { alert('Please select insurance.'); return; }
 
   // ── Determine plan type ──────────────────────────────────
-  const durShortOrMed = ['days','weeks','months_s'].includes(dur);
-  const isLong        = (dur==='months_l'||dur==='years');
-  const isYouthMild   = (age < 20 && degen === false && sublux < 6 && durShortOrMed);
-  const highCx        = (age>40 && sublux>=5 && degen===true && isLong);
+  const isLong     = (dur==='months_l'||dur==='years');
+  const isVeryLong = (dur==='years');
+
+  let highCx;
+  if (age < 20)       highCx = isVeryLong;                              // <20: symptoms >1yr → 3x/wk
+  else if (age <= 50) highCx = (sublux > 5 && degen===true && isLong);  // 20–50: sublux>5 + degen + >6mo → 3x/wk
+  else                highCx = (degen===true);                           // >50: degen present → 3x/wk
 
   const durLabel = {days:'days', weeks:'weeks', months_s:'1–6 months', months_l:'more than 6 months', years:'years'}[dur];
   const areaLabels = areas.map(a => ({
@@ -797,80 +800,54 @@ function calcStd() {
   const insVisits   = inNetCarriers.includes(carrier) ? (highCx ? 12 : 8) : 0;
   const freqLabel   = highCx ? '3× per week' : '2× per week';
 
-  if (isYouthMild) {
-    // ── YOUTH / MILD PLAN (24 visits, 2x/week, no therapy) ──
-    const yInsVisits = inNetCarriers.includes(carrier) ? 8 : 0;
-    const costHtml = buildCostHtml('std', 24, yInsVisits, 'std', []);
-    showResult(`
-      <div class="rsec">
-        <div class="rlbl">Recommended Care Plan</div>
-        <div class="plan-badge std">
-          <div class="plan-title">24 Chiropractic Visits / 90 Days — 2× per Week</div>
-          <div class="plan-sub">Youth / mild presentation · Chiropractic adjustments only</div>
-        </div>
+  // ── STANDARD PLAN ──────────────────────────────────────
+  const therapySessions = highCx ? 12 : 6;
+
+  const hasLB = areasSel.has('low_back');
+  const hasSW = ['neck','shoulder','midback','headache','neuropathy','elbow','wrist'].some(a=>areasSel.has(a));
+  let tLines = [];
+  if (cfg.decompression && hasLB) tLines.push({name:'Spinal Decompression', icon:'🔽', rate:85,  sessions:therapySessions});
+  if (cfg.shockwave     && hasSW) tLines.push({name:'Shockwave Therapy',    icon:'⚡', rate:120, sessions:therapySessions});
+  if (!tLines.length && cfg.shockwave) tLines.push({name:'Shockwave Therapy', icon:'⚡', rate:120, sessions:therapySessions});
+
+  const complexityNote = highCx
+    ? (() => {
+        if (age < 20)  return `${age} years old with symptoms present for over a year`;
+        if (age <= 50) return `${age} years old, ${sublux} subluxations, spinal degeneration present, symptoms lasting ${durLabel}`;
+        return `${age} years old with spinal degeneration present`;
+      })()
+    : `${sublux} subluxation${sublux!==1?'s':''}, ${degen?'degeneration present':'no degeneration'}, symptoms present for ${durLabel}`;
+
+  const therapyNote = tLines.length
+    ? tLines.map(t=>`<strong>${t.sessions} ${t.name} sessions</strong>`).join(' and ')
+    : 'chiropractic adjustments only';
+
+  const costHtml = buildCostHtml('std', totalVisits, insVisits, 'std', tLines);
+
+  showResult(`
+    <div class="rsec">
+      <div class="rlbl">Recommended Care Plan</div>
+      <div class="plan-badge std">
+        <div class="plan-title">${totalVisits} Chiropractic Visits / 90 Days — ${freqLabel}${highCx ? ' (High Complexity)' : ''}</div>
+        <div class="plan-sub">${sublux} subluxation${sublux!==1?'s':''} · ${degen?'Degeneration present':'No degeneration'} · ${tLines.length ? therapySessions+' therapy sessions' : 'Adjustments only'}</div>
       </div>
-      <div class="info-box blue" style="margin-bottom:12px">
-        <span class="ico">📋</span>
-        <span>
-          This patient is <strong>${age} years old</strong> with <strong>no spinal degeneration</strong>,
-          <strong>${sublux} subluxation${sublux!==1?'s':''}</strong>, and has had the
-          ${areaLabels} problem for <strong>${durLabel}</strong>.<br><br>
-          Based on this presentation, we recommend <strong>24 chiropractic adjustments over 90 days
-          (2× per week)</strong>. No Shockwave Therapy or Spinal Decompression is indicated at this time.
-        </span>
-      </div>
-      <div class="divider"></div>
-      ${costHtml}
-      <button class="reset-btn" onclick="resetAll()">↺ Reset & Start New</button>
-    `);
-
-  } else {
-    // ── STANDARD PLAN ──────────────────────────────────────
-    const therapySessions = highCx ? 12 : 6;
-
-    const hasLB = areasSel.has('low_back');
-    const hasSW = ['neck','shoulder','midback','headache','neuropathy','elbow','wrist'].some(a=>areasSel.has(a));
-    let tLines = [];
-    if (cfg.decompression && hasLB) tLines.push({name:'Spinal Decompression', icon:'🔽', rate:85,  sessions:therapySessions});
-    if (cfg.shockwave     && hasSW) tLines.push({name:'Shockwave Therapy',    icon:'⚡', rate:120, sessions:therapySessions});
-    // Fallback: if no specific area matched but office has shockwave, recommend it
-    if (!tLines.length && cfg.shockwave) tLines.push({name:'Shockwave Therapy', icon:'⚡', rate:120, sessions:therapySessions});
-
-    const complexityNote = highCx
-      ? `age over 40, ${sublux} subluxations, spinal degeneration present, and a problem lasting ${durLabel}`
-      : `${sublux} subluxation${sublux!==1?'s':''}, ${degen?'degeneration present':'no degeneration'}, problem present for ${durLabel}`;
-
-    const therapyNote = tLines.length
-      ? tLines.map(t=>`<strong>${t.sessions} ${t.name} sessions</strong>`).join(' and ')
-      : 'chiropractic adjustments only';
-
-    const costHtml = buildCostHtml('std', totalVisits, insVisits, 'std', tLines);
-
-    showResult(`
-      <div class="rsec">
-        <div class="rlbl">Recommended Care Plan</div>
-        <div class="plan-badge std">
-          <div class="plan-title">${totalVisits} Chiropractic Visits / 90 Days — ${freqLabel}${highCx ? ' (High Complexity)' : ''}</div>
-          <div class="plan-sub">${sublux} subluxation${sublux!==1?'s':''} · ${degen?'Degeneration present':'No degeneration'} · ${tLines.length ? therapySessions+' therapy sessions' : 'Adjustments only'}</div>
-        </div>
-      </div>
-      <div class="info-box blue" style="margin-bottom:12px">
-        <span class="ico">📋</span>
-        <span>
-          This patient is <strong>${age} years old</strong> presenting with <strong>${areaLabels}</strong>
-          complaints (${complexityNote}).<br><br>
-          We recommend <strong>${totalVisits} chiropractic adjustments over 90 days (${freqLabel})</strong>${tLines.length ? `, along with ${therapyNote} (cash pay)` : ''}. ${highCx ? 'Given the chronic, complex presentation, 12 therapy sessions are indicated.' : ''}
-        </span>
-      </div>
-      ${tLines.length ? `<div class="info-box orange" style="margin-bottom:12px">
-        <span class="ico">⚠️</span>
-        <span>Shockwave Therapy and Spinal Decompression are cash pay — not submitted to insurance.</span>
-      </div>` : ''}
-      <div class="divider"></div>
-      ${costHtml}
-      <button class="reset-btn" onclick="resetAll()">↺ Reset & Start New</button>
-    `);
-  }
+    </div>
+    <div class="info-box blue" style="margin-bottom:12px">
+      <span class="ico">📋</span>
+      <span>
+        This patient is <strong>${age} years old</strong> presenting with <strong>${areaLabels}</strong>
+        complaints (${complexityNote}).<br><br>
+        We recommend <strong>${totalVisits} chiropractic adjustments over 90 days (${freqLabel})</strong>${tLines.length ? `, along with ${therapyNote} (cash pay)` : ''}. ${highCx ? 'Given the complex presentation, 12 therapy sessions are indicated.' : ''}
+      </span>
+    </div>
+    ${tLines.length ? `<div class="info-box orange" style="margin-bottom:12px">
+      <span class="ico">⚠️</span>
+      <span>Shockwave Therapy and Spinal Decompression are cash pay — not submitted to insurance.</span>
+    </div>` : ''}
+    <div class="divider"></div>
+    ${costHtml}
+    <button class="reset-btn" onclick="resetAll()">↺ Reset & Start New</button>
+  `);
 }
 
 // ─── PREGNANCY CALCULATOR ────────────────────────────────
