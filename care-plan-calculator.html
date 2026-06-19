@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chiro Abundance — Care Plan Calculator</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a4f8a;--blue-l:#2563b0;--blue-d:#0f3360;
+  --teal:#0e9f8e;--teal-l:#12b5a2;
+  --pink:#be185d;--pink-l:#db2777;--pink-bg:#fdf2f8;
+  --purple:#7c3aed;--purple-l:#8b5cf6;
+  --orange:#ea580c;--orange-l:#f97316;
+  --green-d:#15803d;--green:#16a34a;--green-bg:#dcfce7;
+  --red:#dc2626;--red-bg:#fee2e2;
+  --gold:#d97706;
+  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g300:#cbd5e1;
+  --g400:#94a3b8;--g600:#475569;--g800:#1e293b;
+  --w:#ffffff;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--g100);color:var(--g800);min-height:100vh}
+
+/* HEADER */
+header{background:linear-gradient(135deg,var(--blue-d) 0%,var(--blue) 60%,var(--blue-l) 100%);color:var(--w);padding:20px 28px;display:flex;align-items:center;gap:14px;box-shadow:0 4px 16px rgba(15,51,96,.25)}
+.logo{width:44px;height:44px;background:var(--w);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px}
+header h1{font-size:20px;font-weight:700;letter-spacing:-.3px}
+header p{font-size:12px;opacity:.8;margin-top:2px}
+
+/* TABS */
+.tabs-wrap{max-width:1060px;margin:20px auto 0;padding:0 16px}
+.tabs{display:flex;background:var(--w);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:4px;gap:3px;flex-wrap:wrap}
+.tab{padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:var(--g400);transition:all .2s;white-space:nowrap;user-select:none}
+.tab:hover{color:var(--g800)}
+.tab.t-std    .tab.active{background:linear-gradient(135deg,var(--blue),var(--blue-l));color:var(--w);box-shadow:0 2px 6px rgba(26,79,138,.3)}
+.tab.active-std    {background:linear-gradient(135deg,var(--blue),var(--blue-l));color:var(--w);box-shadow:0 2px 6px rgba(26,79,138,.3)}
+.tab.active-preg   {background:linear-gradient(135deg,var(--pink),var(--pink-l));color:var(--w);box-shadow:0 2px 6px rgba(190,24,93,.3)}
+.tab.active-baby   {background:linear-gradient(135deg,var(--purple),var(--purple-l));color:var(--w);box-shadow:0 2px 6px rgba(124,58,237,.3)}
+.tab.active-pi     {background:linear-gradient(135deg,var(--orange),var(--orange-l));color:var(--w);box-shadow:0 2px 6px rgba(234,88,12,.3)}
+
+/* MAIN GRID */
+.main{max-width:1060px;margin:16px auto;padding:0 16px 60px;display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+@media(max-width:680px){.main{grid-template-columns:1fr}}
+
+/* CARDS */
+.card{background:var(--w);border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:hidden}
+.card-hd{padding:14px 18px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;color:var(--w);transition:background .3s}
+.card-hd.std  {background:linear-gradient(135deg,var(--blue),var(--blue-l))}
+.card-hd.preg {background:linear-gradient(135deg,var(--pink),var(--pink-l))}
+.card-hd.baby {background:linear-gradient(135deg,var(--purple),var(--purple-l))}
+.card-hd.pi   {background:linear-gradient(135deg,var(--orange),var(--orange-l))}
+.card-body{padding:18px}
+
+/* FORM ELEMENTS */
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:12px;font-weight:700;color:var(--g600);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+select,input[type=number],input[type=text]{width:100%;padding:9px 11px;border:1.5px solid var(--g200);border-radius:8px;font-size:14px;color:var(--g800);background:var(--g50);transition:border-color .2s,box-shadow .2s;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath fill='%2394a3b8' d='M1 1l4.5 4.5L10 1'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
+input[type=number],input[type=text]{background-image:none}
+select:focus,input:focus{outline:none;border-color:var(--blue-l);box-shadow:0 0 0 3px rgba(37,99,176,.12);background:var(--w)}
+
+.tog-g{display:flex;gap:6px}
+.tog{flex:1;padding:8px;border:1.5px solid var(--g200);border-radius:8px;background:var(--g50);font-size:13px;font-weight:500;color:var(--g600);cursor:pointer;transition:all .15s;text-align:center}
+.tog:hover{border-color:var(--blue-l);color:var(--blue)}
+.tog.yes{background:var(--green-bg);border-color:var(--green);color:var(--green);font-weight:600}
+.tog.no {background:var(--red-bg);border-color:var(--red);color:var(--red);font-weight:600}
+
+.area-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+.chip{padding:7px 9px;border:1.5px solid var(--g200);border-radius:7px;background:var(--g50);font-size:12px;color:var(--g600);cursor:pointer;transition:all .15s;text-align:center}
+.chip:hover{border-color:var(--teal);color:var(--teal)}
+.chip.on{background:#f0fdfc;border-color:var(--teal);color:var(--teal-l);font-weight:600}
+
+.sym-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+.sym-chip{padding:7px 9px;border:1.5px solid var(--g200);border-radius:7px;background:var(--g50);font-size:12px;color:var(--g600);cursor:pointer;transition:all .15s;text-align:center}
+.sym-chip:hover{border-color:var(--purple-l);color:var(--purple)}
+.sym-chip.on{background:#ede9fe;border-color:var(--purple);color:var(--purple);font-weight:600}
+
+/* INSURANCE SECTION */
+.ins-box{background:var(--g50);border:1.5px solid var(--g200);border-radius:10px;padding:14px;margin-top:4px}
+.ins-box-title{font-size:12px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.ins-sub{display:none;margin-top:10px}
+.ins-sub.show{display:block}
+
+.calc-btn{width:100%;padding:12px;background:linear-gradient(135deg,var(--blue),var(--blue-l));color:var(--w);border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;margin-top:4px}
+.calc-btn:hover{opacity:.9}
+.calc-btn:active{transform:scale(.99)}
+.calc-btn.preg {background:linear-gradient(135deg,var(--pink),var(--pink-l))}
+.calc-btn.baby {background:linear-gradient(135deg,var(--purple),var(--purple-l))}
+.calc-btn.pi   {background:linear-gradient(135deg,var(--orange),var(--orange-l))}
+
+/* RESULTS */
+.rlbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--g400);margin-bottom:7px}
+.rsec{margin-bottom:18px}
+
+.plan-badge{border-radius:10px;padding:13px 15px;margin-bottom:8px;color:var(--w)}
+.plan-badge.std  {background:linear-gradient(135deg,var(--blue),var(--teal))}
+.plan-badge.youth{background:linear-gradient(135deg,#0369a1,#0ea5e9)}
+.plan-badge.preg {background:linear-gradient(135deg,var(--pink),var(--pink-l))}
+.plan-badge.baby {background:linear-gradient(135deg,var(--purple),var(--purple-l))}
+.plan-badge.pi   {background:linear-gradient(135deg,var(--orange),var(--orange-l))}
+.plan-title{font-size:17px;font-weight:700}
+.plan-sub{font-size:12px;opacity:.85;margin-top:3px}
+
+.tbl{width:100%;border:1.5px solid var(--g200);border-radius:10px;overflow:hidden;margin-bottom:8px}
+.tbl-hd{background:var(--g100);padding:8px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--g600)}
+.trow{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid var(--g200);font-size:13px}
+.trow:first-of-type{border-top:none}
+.trow .lbl{color:var(--g600)}
+.trow .val{font-weight:600;color:var(--g800)}
+.trow .val.ins{color:var(--blue-l)}
+.trow .val.pat{color:var(--gold)}
+.trow .val.ok {color:var(--green)}
+.trow .val.accent{color:var(--orange)}
+.trow.tot{background:var(--g50);border-top:2px solid var(--g200) !important}
+.trow.tot .lbl{font-weight:700}
+.trow.tot .val{font-size:15px;color:var(--blue-d)}
+
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.cmp-opt{border:1.5px solid var(--g200);border-radius:10px;padding:12px;text-align:center}
+.cmp-opt.best-std  {border-color:var(--blue);background:#eff6ff}
+.cmp-opt.best-preg {border-color:var(--pink);background:var(--pink-bg)}
+.cmp-opt.best-baby {border-color:var(--purple);background:#ede9fe}
+.cmp-opt .opt-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--g400);margin-bottom:3px}
+.cmp-opt.best-std .opt-lbl  {color:var(--blue)}
+.cmp-opt.best-preg .opt-lbl {color:var(--pink)}
+.cmp-opt.best-baby .opt-lbl {color:var(--purple)}
+.cmp-opt .opt-price{font-size:24px;font-weight:800;color:var(--blue-d);line-height:1}
+.cmp-opt.best-preg .opt-price{color:var(--pink)}
+.cmp-opt.best-baby .opt-price{color:var(--purple)}
+.cmp-opt .opt-sub{font-size:11px;color:var(--g600);margin-top:2px}
+.badge-best{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-top:4px;letter-spacing:.4px;color:var(--w)}
+.badge-best.std  {background:var(--blue)}
+.badge-best.preg {background:var(--pink)}
+.badge-best.baby {background:var(--purple)}
+
+.info-box{border-radius:8px;padding:9px 11px;font-size:12px;display:flex;gap:6px;align-items:flex-start;margin-top:8px}
+.info-box.blue{background:#eff6ff;border:1px solid #bfdbfe;color:var(--blue)}
+.info-box.pink{background:var(--pink-bg);border:1px solid #fbcfe8;color:var(--pink)}
+.info-box.orange{background:#fff7ed;border:1px solid #fed7aa;color:var(--orange)}
+.info-box.purple{background:#ede9fe;border:1px solid #ddd6fe;color:var(--purple)}
+.info-box.green{background:#f0fdf4;border:1px solid #bbf7d0;color:var(--green-d)}
+.info-box .ico{flex-shrink:0;margin-top:1px}
+
+.therapy-b{background:#f0fdfc;border:1.5px solid var(--teal);border-radius:9px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+.therapy-b .ti{font-size:20px}
+.therapy-b .tt{font-size:13px;font-weight:600;color:var(--teal)}
+.therapy-b .ts{font-size:12px;color:var(--g600)}
+
+.pi-rec{border-radius:10px;padding:13px 15px;color:var(--w);background:linear-gradient(135deg,var(--orange),var(--orange-l));margin-bottom:8px}
+.pi-rec .pi-title{font-size:17px;font-weight:700}
+.pi-rec .pi-sub{font-size:12px;opacity:.85;margin-top:3px}
+
+.divider{height:1px;background:var(--g200);margin:14px 0}
+
+.reset-btn{width:100%;padding:9px;background:transparent;color:var(--g400);border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;transition:all .15s;margin-top:6px}
+.reset-btn:hover{color:var(--red);border-color:var(--red);background:var(--red-bg)}
+
+.empty{text-align:center;padding:40px 16px;color:var(--g400)}
+.empty .ei{font-size:40px;margin-bottom:10px}
+.empty p{font-size:13px}
+
+.hidden{display:none!important}
+
+/* OFFICE SELECTOR */
+.off-bar{max-width:1060px;margin:12px auto 0;padding:0 16px}
+.off-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--g400);margin-bottom:6px;text-align:center}
+.off-sel{display:flex;background:var(--w);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:4px;gap:3px}
+.off-btn{flex:1;padding:11px 8px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;color:var(--g600);transition:all .2s;text-align:center;border:none;background:transparent;user-select:none}
+.off-btn:hover{color:var(--g800)}
+.abundance-btn.active-off{background:linear-gradient(135deg,var(--teal),var(--teal-l));color:var(--w);box-shadow:0 2px 8px rgba(14,159,142,.3)}
+.mindful-btn.active-off{background:linear-gradient(135deg,var(--purple),var(--purple-l));color:var(--w);box-shadow:0 2px 8px rgba(124,58,237,.3)}
+
+/* schedule table */
+.sch-table{width:100%;border-collapse:collapse;font-size:12px}
+.sch-table th{background:var(--g100);padding:7px 9px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--g600)}
+.sch-table td{padding:7px 9px;border-bottom:1px solid var(--g200)}
+.sch-table tr:last-child td{border-bottom:none}
+.fbadge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:700}
+.f2x{background:#fce7f3;color:var(--pink)}
+.f1x{background:#eff6ff;color:var(--blue)}
+.f3x{background:#fff7ed;color:var(--orange)}
+.f2m{background:#ede9fe;color:var(--purple)}
+
+.ins-detail-box{background:var(--g50);border:1.5px solid var(--g200);border-radius:9px;overflow:hidden;margin-top:8px}
+.ins-detail-row{display:flex;justify-content:space-between;padding:7px 12px;border-top:1px solid var(--g200);font-size:12px}
+.ins-detail-row:first-child{border-top:none}
+.ins-detail-row .dl{color:var(--g600)}
+.ins-detail-row .dv{font-weight:600}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🦴</div>
+  <div>
+    <h1>Chiro Abundance — Care Plan Calculator</h1>
+    <p>Select a plan type, enter patient details, and get a full cost breakdown</p>
+  </div>
+</header>
+
+<div class="tabs-wrap">
+  <div class="tabs">
+    <div class="tab active-std"  id="tab-std"   onclick="setMode('std')">🦴 Standard</div>
+    <div class="tab"             id="tab-preg"   onclick="setMode('preg')">🤰 Pregnancy</div>
+    <div class="tab"             id="tab-baby"   onclick="setMode('baby')">🍼 Baby</div>
+    <div class="tab"             id="tab-pi"     onclick="setMode('pi')">🚗 Personal Injury</div>
+  </div>
+</div>
+
+<div class="off-bar">
+  <div class="off-lbl">Select Office Location</div>
+  <div class="off-sel">
+    <button class="off-btn abundance-btn active-off" id="off-abundance" onclick="setOffice('abundance')">🦴 Abundance Chiropractic</button>
+    <button class="off-btn mindful-btn"              id="off-mindful"   onclick="setOffice('mindful')">🌿 Mindful Chiropractic</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ══════════════════════════════════════════
+     LEFT: INPUT CARD
+══════════════════════════════════════════ -->
+<div class="card">
+  <div class="card-hd std" id="inp-hd"><span>📋</span><span id="inp-title">Patient Information</span></div>
+  <div class="card-body">
+
+    <!-- ── STANDARD ── -->
+    <div id="frm-std">
+      <div class="fg">
+        <label>Patient Age</label>
+        <input type="number" id="s-age" placeholder="e.g. 45" min="1" max="110"/>
+      </div>
+      <div class="fg">
+        <label>Spinal Degeneration</label>
+        <div class="tog-g">
+          <div class="tog" id="s-degen-y" onclick="setTog('s-degen',true)">✓ Yes</div>
+          <div class="tog" id="s-degen-n" onclick="setTog('s-degen',false)">✗ No</div>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Subluxations on X-Ray</label>
+        <select id="s-sublux">
+          <option value="" disabled selected>Select count</option>
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          <option value="7">7+</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Problem Duration</label>
+        <select id="s-dur">
+          <option value="" disabled selected>How long?</option>
+          <option value="days">Days (acute)</option>
+          <option value="weeks">Weeks (2–8 wks)</option>
+          <option value="months_s">1–6 Months</option>
+          <option value="months_l">More than 6 Months</option>
+          <option value="years">Years (chronic)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Area(s) Affected</label>
+        <div class="area-grid">
+          <div class="chip" data-a="low_back"   onclick="toggleArea(this,'s')">🔽 Low Back</div>
+          <div class="chip" data-a="neck"        onclick="toggleArea(this,'s')">🔼 Neck</div>
+          <div class="chip" data-a="shoulder"    onclick="toggleArea(this,'s')">💪 Shoulder</div>
+          <div class="chip" data-a="midback"     onclick="toggleArea(this,'s')">🔙 Mid Back</div>
+          <div class="chip" data-a="headache"    onclick="toggleArea(this,'s')">🤕 Headache</div>
+          <div class="chip" data-a="neuropathy"  onclick="toggleArea(this,'s')">⚡ Neuropathy</div>
+          <div class="chip" data-a="elbow"       onclick="toggleArea(this,'s')">💢 Elbow</div>
+          <div class="chip" data-a="wrist"       onclick="toggleArea(this,'s')">🖐 Wrist/Hand</div>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Insurance</label>
+        <div id="ins-s"><div id="ins-inputs-s"></div></div>
+        <div id="ins-s-render"></div>
+      </div>
+      <div id="std-ins-section"></div>
+      <button class="calc-btn" onclick="calcStd()">⚡ Generate Care Plan</button>
+    </div>
+
+    <!-- ── PREGNANCY ── -->
+    <div id="frm-preg" class="hidden">
+      <div class="info-box pink" style="margin-bottom:14px">
+        <span class="ico">🤰</span>
+        <span>All chiropractic care plans run 90 days. Enter the patient's current gestational week to calculate visits through week 40.</span>
+      </div>
+      <div class="fg">
+        <label>Current Week of Pregnancy</label>
+        <input type="number" id="p-week" placeholder="e.g. 20" min="1" max="39"/>
+      </div>
+      <div class="fg">
+        <label>Insurance</label>
+        <div id="ins-p-render"></div>
+      </div>
+      <div id="preg-ins-section"></div>
+      <button class="calc-btn preg" onclick="calcPreg()">🤰 Generate Pregnancy Plan</button>
+    </div>
+
+    <!-- ── BABY ── -->
+    <div id="frm-baby" class="hidden">
+      <div class="info-box purple" style="margin-bottom:14px">
+        <span class="ico">🍼</span>
+        <span>With symptoms → 1x/week for 90 days. No symptoms → 2x/month for 90 days.</span>
+      </div>
+      <div class="fg">
+        <label>Symptoms Present? (select all that apply)</label>
+        <div class="sym-grid">
+          <div class="sym-chip" onclick="toggleSym(this)">😣 Torticollis</div>
+          <div class="sym-chip" onclick="toggleSym(this)">😭 Colic</div>
+          <div class="sym-chip" onclick="toggleSym(this)">👂 Ear Infections</div>
+          <div class="sym-chip" onclick="toggleSym(this)">🦵 Hip Movement</div>
+          <div class="sym-chip" onclick="toggleSym(this)">↔️ Head Preference</div>
+          <div class="sym-chip" onclick="toggleSym(this)">🔵 Flat Head</div>
+          <div class="sym-chip" onclick="toggleSym(this)">😔 Other Symptoms</div>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Insurance</label>
+        <div id="ins-b-render"></div>
+      </div>
+      <div id="baby-ins-section"></div>
+      <button class="calc-btn baby" onclick="calcBaby()">🍼 Generate Baby Plan</button>
+    </div>
+
+    <!-- ── PERSONAL INJURY ── -->
+    <div id="frm-pi" class="hidden">
+      <div class="info-box orange" style="margin-bottom:14px">
+        <span class="ico">🚗</span>
+        <span>Insurance covers all patient care. No patient cost — just care plan & therapy recommendation.</span>
+      </div>
+      <div class="fg">
+        <label>Neurological Signs or Symptoms?</label>
+        <div class="tog-g">
+          <div class="tog" id="pi-neuro-y" onclick="setTog('pi-neuro',true)">✓ Yes</div>
+          <div class="tog" id="pi-neuro-n" onclick="setTog('pi-neuro',false)">✗ No</div>
+        </div>
+      </div>
+      <div class="fg">
+        <label>PIP (Personal Injury Protection) Available?</label>
+        <div class="tog-g">
+          <div class="tog" id="pi-pip-y" onclick="setTog('pi-pip',true);updatePIFields()">✓ Yes</div>
+          <div class="tog" id="pi-pip-n" onclick="setTog('pi-pip',false);updatePIFields()">✗ No</div>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Did Patient Go to the Hospital?</label>
+        <div class="tog-g">
+          <div class="tog" id="pi-hosp-y" onclick="setTog('pi-hosp',true);updatePIFields()">✓ Yes</div>
+          <div class="tog" id="pi-hosp-n" onclick="setTog('pi-hosp',false);updatePIFields()">✗ No</div>
+        </div>
+      </div>
+      <div id="pi-bi-section" class="hidden">
+        <div class="fg">
+          <label>BI / UM Coverage Amount</label>
+          <select id="pi-bi-amt">
+            <option value="" disabled selected>Select coverage amount</option>
+            <option value="0">$10,000 or less</option>
+            <option value="25">$25,000</option>
+            <option value="50">$50,000</option>
+            <option value="100">$100,000+</option>
+          </select>
+        </div>
+      </div>
+      <button class="calc-btn pi" onclick="calcPI()">🚗 Generate PI Plan</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     RIGHT: RESULTS CARD
+══════════════════════════════════════════ -->
+<div class="card">
+  <div class="card-hd std" id="res-hd"><span>📊</span><span>Care Plan & Cost Breakdown</span></div>
+  <div class="card-body">
+    <div class="empty" id="empty-state">
+      <div class="ei">📋</div>
+      <p>Fill in patient details and click<br><strong>Generate Care Plan</strong> to see results.</p>
+    </div>
+    <div id="results-area" class="hidden"></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ─── STATE ───────────────────────────────────────────────
+let mode = 'std';
+const togState = {};
+const areasSel = new Set();
+const symsSel  = new Set();
+
+// ─── OFFICE CONFIG ───────────────────────────────────────
+let office = 'abundance';
+const officeCfg = {
+  abundance: { name:'Abundance Chiropractic', upfront:69.25, monthly:74.25, shockwave:true,  decompression:true  },
+  mindful:   { name:'Mindful Chiropractic',   upfront:60.00, monthly:74.25, shockwave:false, decompression:false }
+};
+function getOfficeCfg() { return officeCfg[office]; }
+function setOffice(o) {
+  office = o;
+  document.getElementById('off-abundance').classList.toggle('active-off', o === 'abundance');
+  document.getElementById('off-mindful').classList.toggle('active-off', o === 'mindful');
+  clearResults();
+}
+
+// ─── MODE ────────────────────────────────────────────────
+const modeMap = {
+  std:  {label:'Patient Information',   hd:'std',  tab:'active-std'},
+  preg: {label:'Pregnancy Information', hd:'preg', tab:'active-preg'},
+  baby: {label:'Baby Plan',             hd:'baby', tab:'active-baby'},
+  pi:   {label:'Personal Injury',       hd:'pi',   tab:'active-pi'},
+};
+
+function setMode(m) {
+  mode = m;
+  const cfg = modeMap[m];
+  ['std','preg','baby','pi'].forEach(k => {
+    document.getElementById('frm-'+k).classList.toggle('hidden', k !== m);
+    const t = document.getElementById('tab-'+k);
+    if (t) t.className = 'tab' + (k === m ? ' '+modeMap[k].tab : '');
+  });
+  document.getElementById('inp-hd').className = 'card-hd '+cfg.hd;
+  document.getElementById('inp-title').textContent = cfg.label;
+  document.getElementById('res-hd').className = 'card-hd '+cfg.hd;
+
+  // Render insurance block for this mode
+  if (m !== 'pi') renderInsBlock(m);
+  clearResults();
+}
+
+// ─── INSURANCE BLOCK RENDERER ────────────────────────────
+function renderInsBlock(pfx) {
+  const containerId = {std:'ins-s-render', youth:'ins-y-render', preg:'ins-p-render', baby:'ins-b-render'}[pfx];
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  el.innerHTML = `
+    <select id="${pfx}-carrier" onchange="onCarrierChange('${pfx}')">
+      <option value="" disabled selected>Select insurance</option>
+      <option value="Medicare">Medicare</option>
+      <option value="United Healthcare">United Healthcare</option>
+      <option value="VA">VA (Veteran Affairs)</option>
+      <option value="Aetna">Aetna</option>
+      <option value="Other">Other (out-of-network)</option>
+      <option value="None">Self-Pay / No Insurance</option>
+    </select>
+    <div id="${pfx}-ins-detail" class="hidden" style="margin-top:10px">
+      <div class="ins-box">
+        <div class="ins-box-title">🔍 Insurance Benefit Details</div>
+
+        <!-- Network status -->
+        <div class="fg" id="${pfx}-network-row">
+          <label>Network Status</label>
+          <div class="tog-g">
+            <div class="tog" id="${pfx}-net-in"  onclick="setTog('${pfx}-net','in');  onNetChange('${pfx}')">In-Network</div>
+            <div class="tog" id="${pfx}-net-out" onclick="setTog('${pfx}-net','out'); onNetChange('${pfx}')">Out-of-Network</div>
+          </div>
+        </div>
+
+        <!-- IN-NETWORK: Copay vs Co-insurance -->
+        <div id="${pfx}-in-fields" class="ins-sub">
+          <div class="fg">
+            <label>Benefit Type</label>
+            <div class="tog-g">
+              <div class="tog" id="${pfx}-bt-cop" onclick="setTog('${pfx}-bt','cop'); onBtChange('${pfx}')">Copay</div>
+              <div class="tog" id="${pfx}-bt-coin" onclick="setTog('${pfx}-bt','coin'); onBtChange('${pfx}')">Co-Insurance</div>
+            </div>
+          </div>
+          <!-- Copay fields -->
+          <div id="${pfx}-cop-fields" class="hidden">
+            <div class="fg">
+              <label>Copay Amount per Visit ($)</label>
+              <input type="number" id="${pfx}-copay" placeholder="e.g. 30" min="0"/>
+            </div>
+          </div>
+          <!-- Co-insurance fields (in-network) -->
+          <div id="${pfx}-coin-fields" class="hidden">
+            <div class="fg">
+              <label>In-Network Deductible ($)</label>
+              <input type="number" id="${pfx}-in-ded" placeholder="e.g. 1500" min="0"/>
+            </div>
+            <div class="fg">
+              <label>Amount Already Met ($)</label>
+              <input type="number" id="${pfx}-in-met" placeholder="e.g. 500" min="0"/>
+            </div>
+            <div class="fg">
+              <label>Co-Insurance % (patient's share after deductible)</label>
+              <input type="number" id="${pfx}-in-coin" placeholder="e.g. 20" min="0" max="100"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- OUT-OF-NETWORK fields -->
+        <div id="${pfx}-out-fields" class="ins-sub">
+          <div class="fg">
+            <label>Out-of-Network Deductible ($)</label>
+            <input type="number" id="${pfx}-out-ded" placeholder="e.g. 3000" min="0"/>
+          </div>
+          <div class="fg">
+            <label>Amount Already Met ($)</label>
+            <input type="number" id="${pfx}-out-met" placeholder="e.g. 0" min="0"/>
+          </div>
+          <div class="fg">
+            <label>Co-Insurance % (patient's share after deductible)</label>
+            <input type="number" id="${pfx}-out-coin" placeholder="e.g. 40" min="0" max="100"/>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
+function onCarrierChange(pfx) {
+  const val = document.getElementById(pfx+'-carrier').value;
+  const det = document.getElementById(pfx+'-ins-detail');
+  if (!val || val === 'None') {
+    det.classList.add('hidden');
+    return;
+  }
+  // Pre-set network toggle for known in-network carriers
+  const inNet = ['Medicare','United Healthcare','VA','Aetna'].includes(val);
+  det.classList.remove('hidden');
+  if (inNet) {
+    setTog(pfx+'-net','in');
+    onNetChange(pfx);
+  } else if (val === 'Other') {
+    setTog(pfx+'-net','out');
+    onNetChange(pfx);
+  }
+}
+
+function onNetChange(pfx) {
+  const net = togState[pfx+'-net'];
+  document.getElementById(pfx+'-in-fields').classList.toggle('show', net === 'in');
+  document.getElementById(pfx+'-out-fields').classList.toggle('show', net === 'out');
+}
+
+function onBtChange(pfx) {
+  const bt = togState[pfx+'-bt'];
+  document.getElementById(pfx+'-cop-fields').classList.toggle('hidden', bt !== 'cop');
+  document.getElementById(pfx+'-coin-fields').classList.toggle('hidden', bt !== 'coin');
+}
+
+// ─── TOGGLE HELPERS ──────────────────────────────────────
+function setTog(key, val) {
+  togState[key] = val;
+  // Standard yes/no
+  const y = document.getElementById(key+'-y');
+  const n = document.getElementById(key+'-n');
+  if (y && n) {
+    y.className = 'tog' + (val === true  ? ' yes' : '');
+    n.className = 'tog' + (val === false ? ' no'  : '');
+  }
+  // Network tabs
+  const inEl  = document.getElementById(key+'-in');
+  const outEl = document.getElementById(key+'-out');
+  if (inEl && outEl) {
+    inEl.className  = 'tog' + (val === 'in'  ? ' yes' : '');
+    outEl.className = 'tog' + (val === 'out' ? ' no'  : '');
+  }
+  // Benefit type tabs
+  const copEl  = document.getElementById(key+'-cop');
+  const coinEl = document.getElementById(key+'-coin');
+  if (copEl && coinEl) {
+    copEl.className  = 'tog' + (val === 'cop'  ? ' yes' : '');
+    coinEl.className = 'tog' + (val === 'coin' ? ' yes' : '');
+  }
+  // PI toggles
+  ['pip','hosp','neuro'].forEach(id => {
+    if (key === 'pi-'+id) {
+      const yEl = document.getElementById('pi-'+id+'-y');
+      const nEl = document.getElementById('pi-'+id+'-n');
+      if (yEl && nEl) {
+        yEl.className = 'tog' + (val === true  ? ' yes' : '');
+        nEl.className = 'tog' + (val === false ? ' no'  : '');
+      }
+    }
+  });
+}
+
+function toggleArea(el, pfx) {
+  const a = el.dataset.a;
+  if (areasSel.has(a)) { areasSel.delete(a); el.classList.remove('on'); }
+  else                  { areasSel.add(a);    el.classList.add('on'); }
+}
+
+function toggleSym(el) {
+  const t = el.textContent;
+  if (symsSel.has(t)) { symsSel.delete(t); el.classList.remove('on'); }
+  else                 { symsSel.add(t);    el.classList.add('on'); }
+}
+
+function updatePIFields() {
+  const pip  = togState['pi-pip'];
+  const hosp = togState['pi-hosp'];
+  // Show BI/UM when: no PIP (always), or PIP + hospital
+  const showBI = (pip === false) || (pip === true && hosp === true);
+  document.getElementById('pi-bi-section').classList.toggle('hidden', !showBI);
+}
+
+// ─── FORMAT ──────────────────────────────────────────────
+function $$(n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function get(id) { return document.getElementById(id); }
+function val(id) { const e = get(id); return e ? e.value : ''; }
+function num(id) { return parseFloat(val(id)) || 0; }
+
+// ─── INSURANCE COST CALCULATOR ───────────────────────────
+// Returns { insuredCost, breakdown[] } for patient's portion of insured visits
+function calcInsCost(pfx, insuredVisits) {
+  const carrier = val(pfx+'-carrier');
+  const net     = togState[pfx+'-net'];
+  const bt      = togState[pfx+'-bt'];
+  const rate    = 74.25; // billing rate
+
+  if (!carrier || carrier === 'None') return null; // self-pay, no ins calc
+
+  const breakdown = [];
+  let insuredCost = 0;
+
+  if (net === 'in') {
+    if (bt === 'cop') {
+      const copay = num(pfx+'-copay');
+      insuredCost = copay * insuredVisits;
+      breakdown.push({ d:`${insuredVisits} visits × $${copay} copay`, v:insuredCost });
+    } else if (bt === 'coin') {
+      const ded    = num(pfx+'-in-ded');
+      const met    = num(pfx+'-in-met');
+      const coin   = num(pfx+'-in-coin');
+      const remain = Math.max(0, ded - met);
+      const vToMeet = remain > 0 ? Math.ceil(remain / rate) : 0;
+
+      if (vToMeet >= insuredVisits) {
+        // Deductible not met within insured visits
+        insuredCost = rate * insuredVisits;
+        breakdown.push({ d:`Deductible not met — patient pays $${rate} × ${insuredVisits} visits`, v:insuredCost, warn:true });
+      } else {
+        // Partial deductible + co-insurance on remainder
+        const dedCost  = rate * vToMeet;
+        const coinVisits = insuredVisits - vToMeet;
+        const coinCost = (coin / 100) * rate * coinVisits;
+        insuredCost = dedCost + coinCost;
+        if (vToMeet > 0) breakdown.push({ d:`${vToMeet} visits to meet deductible ($${remain.toFixed(2)} remaining)`, v:dedCost });
+        breakdown.push({ d:`${coinVisits} visits at ${coin}% co-insurance ($${rate} × ${coin}%)`, v:coinCost });
+      }
+    }
+  } else if (net === 'out') {
+    // Out-of-network — same deductible+co-insurance logic
+    const ded    = num(pfx+'-out-ded');
+    const met    = num(pfx+'-out-met');
+    const coin   = num(pfx+'-out-coin');
+    const remain = Math.max(0, ded - met);
+    const vToMeet = remain > 0 ? Math.ceil(remain / rate) : 0;
+
+    if (vToMeet >= insuredVisits) {
+      insuredCost = rate * insuredVisits;
+      breakdown.push({ d:`OON deductible not met — patient pays $${rate} × ${insuredVisits} visits`, v:insuredCost, warn:true });
+    } else {
+      const dedCost  = rate * vToMeet;
+      const coinVisits = insuredVisits - vToMeet;
+      const coinCost = (coin / 100) * rate * coinVisits;
+      insuredCost = dedCost + coinCost;
+      if (vToMeet > 0) breakdown.push({ d:`${vToMeet} visits to meet OON deductible ($${remain.toFixed(2)} remaining)`, v:dedCost });
+      if (coinVisits > 0) breakdown.push({ d:`${coinVisits} visits at ${coin}% co-insurance`, v:coinCost });
+    }
+  }
+
+  return { carrier, net, bt, insuredCost, breakdown };
+}
+
+// ─── RENDER RESULT ───────────────────────────────────────
+function showResult(html) {
+  get('empty-state').style.display = 'none';
+  get('results-area').classList.remove('hidden');
+  get('results-area').innerHTML = html;
+}
+
+function clearResults() {
+  get('empty-state').style.display = '';
+  get('results-area').classList.add('hidden');
+  get('results-area').innerHTML = '';
+}
+
+// Build chiro cost HTML (reusable)
+// therapies = [{name, sessions, rate}] optional
+function buildCostHtml(pfx, totalVisits, insVisits, planClass, therapies) {
+  therapies = therapies || [];
+  const cfg    = getOfficeCfg();
+  const carrier = val(pfx+'-carrier');
+  const isNone  = !carrier || carrier === 'None';
+  const ptVisits = isNone ? totalVisits : totalVisits - insVisits;
+
+  const chiroUpfront = ptVisits * cfg.upfront;
+  const chiroMonthly = ptVisits * cfg.monthly;
+  const therapyTotal = therapies.reduce((s,t) => s + t.rate * t.sessions, 0);
+
+  const ins = (isNone || insVisits === 0) ? null : calcInsCost(pfx, insVisits);
+  const insuredCost = ins ? ins.insuredCost : 0;
+
+  const grandUpfront = chiroUpfront + insuredCost + therapyTotal;
+  const grandMonthly = chiroMonthly + insuredCost + therapyTotal;
+
+  // ── Full line-item breakdown ──
+  let breakdownRows = '';
+
+  // Insurance portion
+  if (ins && ins.breakdown.length) {
+    breakdownRows += `<div class="ins-detail-row" style="background:var(--g100)"><span class="dl" style="font-weight:700;color:var(--blue)">🏥 Insurance — ${ins.carrier} (${insVisits} visits billed)</span><span class="dv"></span></div>`;
+    ins.breakdown.forEach(b => {
+      breakdownRows += `<div class="ins-detail-row" style="padding-left:20px"><span class="dl">${b.d}</span><span class="dv ${b.warn?'accent':''}">${$$(b.v)}</span></div>`;
+    });
+    breakdownRows += `<div class="ins-detail-row" style="padding-left:20px;font-weight:600"><span class="dl">Subtotal — insurance portion</span><span class="dv pat">${$$(insuredCost)}</span></div>`;
+  }
+
+  // Cash chiro visits
+  breakdownRows += `<div class="ins-detail-row" style="background:var(--g100)"><span class="dl" style="font-weight:700;color:var(--g800)">🦴 Chiropractic — ${ptVisits} cash-pay visits</span><span class="dv"></span></div>`;
+  breakdownRows += `<div class="ins-detail-row" style="padding-left:20px"><span class="dl">Pay In Full: ${ptVisits} × $${cfg.upfront.toFixed(2)}</span><span class="dv">${$$(chiroUpfront)}</span></div>`;
+  breakdownRows += `<div class="ins-detail-row" style="padding-left:20px"><span class="dl">Monthly Plan: ${ptVisits} × $${cfg.monthly.toFixed(2)}</span><span class="dv">${$$(chiroMonthly)}</span></div>`;
+
+  // Therapies
+  therapies.forEach(t => {
+    const tTotal = t.rate * t.sessions;
+    breakdownRows += `<div class="ins-detail-row" style="background:var(--g100)"><span class="dl" style="font-weight:700;color:var(--teal)">⚕️ ${t.name} — ${t.sessions} sessions (cash pay)</span><span class="dv"></span></div>`;
+    breakdownRows += `<div class="ins-detail-row" style="padding-left:20px"><span class="dl">${t.sessions} sessions × ${$$(t.rate)}/session</span><span class="dv ok">${$$(tTotal)}</span></div>`;
+  });
+
+  return `
+    <div class="rsec">
+      <div class="rlbl">Visit Summary</div>
+      <div class="tbl">
+        <div class="tbl-hd">Chiropractic Visits</div>
+        <div class="trow"><span class="lbl">Total visits</span><span class="val">${totalVisits} / 90 days</span></div>
+        ${ins ? `<div class="trow"><span class="lbl">Billed to insurance</span><span class="val ins">${insVisits} visits</span></div>` : ''}
+        <div class="trow"><span class="lbl">Patient cash-pay visits</span><span class="val pat">${ptVisits} visits</span></div>
+        ${therapies.map(t=>`<div class="trow"><span class="lbl">${t.name}</span><span class="val" style="color:var(--teal)">${t.sessions} sessions</span></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="rsec">
+      <div class="rlbl">Full Cost Breakdown</div>
+      <div class="ins-detail-box">
+        ${breakdownRows}
+      </div>
+    </div>
+
+    <div class="rsec">
+      <div class="rlbl">Grand Total — Patient Out-of-Pocket</div>
+      <div class="cmp">
+        <div class="cmp-opt best-${planClass}">
+          <div class="opt-lbl">Pay In Full</div>
+          <div class="opt-price">${$$(grandUpfront)}</div>
+          <div class="opt-sub">All chiro${therapies.length?' + therapy':''} included</div>
+          <div class="badge-best ${planClass}">BEST VALUE</div>
+        </div>
+        <div class="cmp-opt">
+          <div class="opt-lbl">Monthly — 3 payments of</div>
+          <div class="opt-price" style="color:var(--g800)">${$$(grandMonthly/3)}</div>
+          <div class="opt-sub">Total ${$$(grandMonthly)}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ─── STANDARD CALCULATOR ─────────────────────────────────
+function calcStd() {
+  const age     = num('s-age');
+  const sublux  = num('s-sublux');
+  const dur     = val('s-dur');
+  const degen   = togState['s-degen'];
+  const carrier = val('std-carrier');
+  const areas   = [...areasSel];
+  const cfg     = getOfficeCfg();
+
+  if (!age)                 { alert('Please enter a valid age.'); return; }
+  if (degen === undefined)  { alert('Please select degeneration status.'); return; }
+  if (!sublux)              { alert('Please select subluxation count.'); return; }
+  if (!dur)                 { alert('Please select problem duration.'); return; }
+  if (areas.length === 0)   { alert('Please select at least one area affected.'); return; }
+  if (!carrier)             { alert('Please select insurance.'); return; }
+
+  // ── Determine plan type ──────────────────────────────────
+  const durShortOrMed = ['days','weeks','months_s'].includes(dur);
+  const isLong        = (dur==='months_l'||dur==='years');
+  const isYouthMild   = (age < 20 && degen === false && sublux < 6 && durShortOrMed);
+  const highCx        = (age>40 && sublux>=5 && degen===true && isLong);
+
+  const durLabel = {days:'days', weeks:'weeks', months_s:'1–6 months', months_l:'more than 6 months', years:'years'}[dur];
+  const areaLabels = areas.map(a => ({
+    low_back:'low back', neck:'neck', shoulder:'shoulder', midback:'mid back',
+    headache:'headaches', neuropathy:'neuropathy', elbow:'elbow', wrist:'wrist/hand'
+  }[a]||a)).join(', ');
+
+  const inNetCarriers = ['Medicare','United Healthcare','VA','Aetna'];
+  // Complex cases: 36 visits 3x/week; youth/mild or standard: 24 visits 2x/week
+  const totalVisits = highCx ? 36 : 24;
+  const insVisits   = inNetCarriers.includes(carrier) ? (highCx ? 12 : 8) : 0;
+  const freqLabel   = highCx ? '3× per week' : '2× per week';
+
+  if (isYouthMild) {
+    // ── YOUTH / MILD PLAN (24 visits, 2x/week, no therapy) ──
+    const yInsVisits = inNetCarriers.includes(carrier) ? 8 : 0;
+    const costHtml = buildCostHtml('std', 24, yInsVisits, 'std', []);
+    showResult(`
+      <div class="rsec">
+        <div class="rlbl">Recommended Care Plan</div>
+        <div class="plan-badge std">
+          <div class="plan-title">24 Chiropractic Visits / 90 Days — 2× per Week</div>
+          <div class="plan-sub">Youth / mild presentation · Chiropractic adjustments only</div>
+        </div>
+      </div>
+      <div class="info-box blue" style="margin-bottom:12px">
+        <span class="ico">📋</span>
+        <span>
+          This patient is <strong>${age} years old</strong> with <strong>no spinal degeneration</strong>,
+          <strong>${sublux} subluxation${sublux!==1?'s':''}</strong>, and has had the
+          ${areaLabels} problem for <strong>${durLabel}</strong>.<br><br>
+          Based on this presentation, we recommend <strong>24 chiropractic adjustments over 90 days
+          (2× per week)</strong>. No Shockwave Therapy or Spinal Decompression is indicated at this time.
+        </span>
+      </div>
+      <div class="divider"></div>
+      ${costHtml}
+      <button class="reset-btn" onclick="resetAll()">↺ Reset & Start New</button>
+    `);
+
+  } else {
+    // ── STANDARD PLAN ──────────────────────────────────────
+    const therapySessions = highCx ? 12 : 6;
+
+    const hasLB = areasSel.has('low_back');
+    const hasSW = ['neck','shoulder','midback','headache','neuropathy','elbow','wrist'].some(a=>areasSel.has(a));
+    let tLines = [];
+    if (cfg.decompression && hasLB) tLines.push({name:'Spinal Decompression', icon:'🔽', rate:85,  sessions:therapySessions});
+    if (cfg.shockwave     && hasSW) tLines.push({name:'Shockwave Therapy',    icon:'⚡', rate:120, sessions:therapySessions});
+    // Fallback: if no specific area matched but office has shockwave, recommend it
+    if (!tLines.length && cfg.shockwave) tLines.push({name:'Shockwave Therapy', icon:'⚡', rate:120, sessions:therapySessions});
+
+    const complexityNote = highCx
+      ? `age over 40, ${sublux} subluxations, spinal degeneration present, and a problem lasting ${durLabel}`
+      : `${sublux} subluxation${sublux!==1?'s':''}, ${degen?'degeneration present':'no degeneration'}, problem present for ${durLabel}`;
+
+    const therapyNote = tLines.length
+      ? tLines.map(t=>`<strong>${t.sessions} ${t.name} sessions</strong>`).join(' and ')
+      : 'chiropractic adjustments only';
+
+    const costHtml = buildCostHtml('std', totalVisits, insVisits, 'std', tLines);
+
+    showResult(`
+      <div class="rsec">
+        <div class="rlbl">Recommended Care Plan</div>
+        <div class="plan-badge std">
+          <div class="plan-title">${totalVisits} Chiropractic Visits / 90 Days — ${freqLabel}${highCx ? ' (High Complexity)' : ''}</div>
+          <div class="plan-sub">${sublux} subluxation${sublux!==1?'s':''} · ${degen?'Degeneration present':'No degeneration'} · ${tLines.length ? therapySessions+' therapy sessions' : 'Adjustments only'}</div>
+        </div>
+      </div>
+      <div class="info-box blue" style="margin-bottom:12px">
+        <span class="ico">📋</span>
+        <span>
+          This patient is <strong>${age} years old</strong> presenting with <strong>${areaLabels}</strong>
+          complaints (${complexityNote}).<br><br>
+          We recommend <strong>${totalVisits} chiropractic adjustments over 90 days (${freqLabel})</strong>${tLines.length ? `, along with ${therapyNote} (cash pay)` : ''}. ${highCx ? 'Given the chronic, complex presentation, 12 therapy sessions are indicated.' : ''}
+        </span>
+      </div>
+      ${tLines.length ? `<div class="info-box orange" style="margin-bottom:12px">
+        <span class="ico">⚠️</span>
+        <span>Shockwave Therapy and Spinal Decompression are cash pay — not submitted to insurance.</span>
+      </div>` : ''}
+      <div class="divider"></div>
+      ${costHtml}
+      <button class="reset-btn" onclick="resetAll()">↺ Reset & Start New</button>
+    `);
+  }
+}
+
+// ─── PREGNANCY CALCULATOR ────────────────────────────────
+function calcPreg() {
+  const week    = num('p-week');
+  const carrier = val('preg-carrier');
+  if (!week || week < 1 || week > 39) { alert('Enter a gestational week between 1 and 39.'); return; }
+  if (!carrier) { alert('Please select insurance.'); return; }
+
+  const weeksRemaining = 40 - week;
+  let schedule = [];
+  let totalVisits = 0;
+
+  if (weeksRemaining <= 4) {
+    schedule.push({phase:'Final Stretch', weeks:weeksRemaining, freq:'2x/week', cls:'f2x', visits:weeksRemaining*2});
+    totalVisits = weeksRemaining * 2;
+  } else if (weeksRemaining <= 8) {
+    const p1 = weeksRemaining - 4;
+    schedule.push({phase:'Initial Phase',  weeks:p1, freq:'2x/week', cls:'f2x', visits:p1*2});
+    schedule.push({phase:'Final 4 Weeks',  weeks:4,  freq:'2x/week', cls:'f2x', visits:8});
+    totalVisits = weeksRemaining * 2;
+  } else {
+    const mid = weeksRemaining - 8;
+    schedule.push({phase:'Initial Phase',  weeks:4,  freq:'2x/week', cls:'f2x', visits:8});
+    if (mid > 0) schedule.push({phase:'Maintenance', weeks:mid, freq:'1x/week', cls:'f1x', visits:mid});
+    schedule.push({phase:'Final 4 Weeks',  weeks:4,  freq:'2x/week', cls:'f2x', visits:8});
+    totalVisits = 8 + mid + 8;
+  }
+
+  const insVisits = Math.min(8, totalVisits);
+  const carrier2  = carrier;
+  const inNet     = ['Medicare','United Healthcare','VA','Aetna'].includes(carrier2);
+  const effInsVisits = inNet ? insVisits : 0;
+  const ptVisits  = totalVisits - effInsVisits;
+  const pregCfg   = getOfficeCfg();
+  const upfront   = ptVisits * pregCfg.upfront;
+  const monthly   = ptVisits * pregCfg.monthly;
+  const ins       = (carrier2 !== 'None' && effInsVisits > 0) ? calcInsCost('preg', effInsVisits) : null;
+
+  let schRows = schedule.map(r=>`
+    <tr>
+      <td>${r.phase}</td>
+      <td>Wk ${week + schedule.slice(0,schedule.indexOf(r)).reduce((s,x)=>s+x.weeks,0)+1}–${week + schedule.slice(0,schedule.indexOf(r)+1).reduce((s,x)=>s+x.weeks,0)}</td>
+      <td><span class="fbadge ${r.cls}">${r.freq}</span></td>
+      <td><strong>${r.visits}</strong></td>
+    </tr>`).join('');
+
+  const insHtml = ins ? `
+    <div class="rsec">
+      <div class="rlbl">Insurance (${ins.carrier})</div>
+      <div class="ins-detail-box">
+        <div class="ins-detail-row"><span class="dl">Billed to insurance</span><span class="dv ins">${effInsVisits} visits</span></div>
+        ${ins.breakdown.map(b=>`<div class="ins-detail-row"><span class="dl">${b.d}</span><span class="dv ${b.warn?'accent':''}">${$$(b.v)}</span></div>`).join('')}
+        <div class="ins-detail-row" style="border-top:2px solid var(--g200);font-weight:700"><span class="dl">Patient cost — insured visits</span><span class="dv pat">${$$(ins.insuredCost)}</span></div>
+      </div>
+    </div>` : '';
+
+  const totalUp = upfront + (ins?ins.insuredCost:0);
+  const totalMo = monthly + (ins?ins.insuredCost:0);
+
+  // Payment schedule: one payment per month of care, last payment at week 36 (4 weeks before due date)
+  const numMonths    = Math.max(1, Math.ceil(weeksRemaining / 4));
+  const perMonth     = totalMo / numMonths;
+  const perMonthUp   = totalUp / numMonths; // pay-in-full has no monthly split but show for context
+  const lastPmtWeek  = Math.max(week, 36); // last payment at week 36 (4 wks before wk 40)
+
+  // Build payment schedule rows
+  let pmtRows = '';
+  for (let i = 0; i < numMonths; i++) {
+    const pmtWeek   = week + (i * 4);
+    const isLast    = i === numMonths - 1;
+    const label     = isLast ? `Payment ${i+1} (final — week 36, 4 wks before due date)` : `Payment ${i+1} — around week ${Math.min(pmtWeek, 36)}`;
+    pmtRows += `<div class="ins-detail-row" style="${isLast?'font-weight:600;background:#fdf2f8':''}">
+      <span class="dl">${label}</span>
+      <span class="dv ${isLast?'pink-val':''}">${$$(perMonth)}</span>
+    </div>`;
+  }
+
+  showResult(`
+    <div class="rsec">
+      <div class="rlbl">Pregnancy Care Plan</div>
+      <div class="plan-badge preg">
+        <div class="plan-title">${totalVisits} Visits — Week ${week} to Week 40</div>
+        <div class="plan-sub">${weeksRemaining} weeks of care · ${numMonths} month${numMonths!==1?'s':''} · Adjusted frequency schedule</div>
+      </div>
+    </div>
+    <div class="rsec">
+      <div class="rlbl">Visit Schedule</div>
+      <div class="tbl">
+        <table class="sch-table">
+          <thead><tr><th>Phase</th><th>Weeks</th><th>Frequency</th><th>Visits</th></tr></thead>
+          <tbody>${schRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="rsec">
+      <div class="rlbl">Visit Totals</div>
+      <div class="tbl">
+        <div class="tbl-hd">Summary</div>
+        <div class="trow"><span class="lbl">Total visits</span><span class="val">${totalVisits}</span></div>
+        ${effInsVisits ? `<div class="trow"><span class="lbl">Billed to insurance</span><span class="val ins">${effInsVisits} visits</span></div>` : ''}
+        <div class="trow"><span class="lbl">Cash-pay visits</span><span class="val pat">${ptVisits} visits</span></div>
+      </div>
+    </div>
+    ${insHtml}
+    <div class="rsec">
+      <div class="rlbl">Payment Options</div>
+      <div class="cmp">
+        <div class="cmp-opt best-preg">
+          <div class="opt-lbl">Pay In Full</div>
+          <div class="opt-price">${$$(totalUp)}</div>
+          <div class="opt-sub">One payment, all visits included</div>
+          <div class="badge-best preg">BEST VALUE</div>
+        </div>
+        <div class="cmp-opt">
+          <div class="opt-lbl">Monthly Plan</div>
+          <div class="opt-price" style="color:var(--pink)">${$$(perMonth)}</div>
+          <div class="opt-sub">${numMonths} payments · Total ${$$(totalMo)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="rsec">
+      <div class="rlbl">Monthly Payment Schedule</div>
+      <div class="ins-detail-box">
+        <div class="ins-detail-row" style="background:var(--g100)">
+          <span class="dl" style="font-weight:700;color:var(--pink)">🤰 ${numMonths} monthly payment${numMonths!==1?'s':''} of ${$$(perMonth)}</span>
+          <span class="dv" style="color:var(--g400);font-size:11px">Total: ${$$(totalMo)}</span>
+        </div>
+        ${pmtRows}
+        <div class="ins-detail-row" style="background:#fdf2f8;border-top:2px solid #fbcfe8">
+          <span class="dl" style="font-weight:700;font-size:12px;color:var(--pink)">⚠️ Final payment collected at week 36 — 4 weeks before due date</span>
+          <span class="dv"></span>
+        </div>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">↺ Reset & Start New</button>
+  `);
+}
+
+// ─── BABY CALCULATOR ─────────────────────────────────────
+function calcBaby() {
+  const carrier = val('baby-carrier');
+  if (!carrier) { alert('Please select insurance.'); return; }
+
+  const hasSymptoms = symsSel.size > 0;
+  let freq, totalVisits, freqLabel, freqBadge;
+
+  if (hasSymptoms) {
+    freq = '1x/week'; totalVisits = 12; freqLabel = '1× per week'; freqBadge = 'f1x';
+  } else {
+    freq = '2x/month'; totalVisits = 6; freqLabel = '2× per month'; freqBadge = 'f2m';
+  }
+
+  const inNet     = ['Medicare','United Healthcare','VA','Aetna'].includes(carrier);
+  const insVisits = carrier==='None' ? 0 : Math.min(8, totalVisits);
+  const effIns    = inNet ? insVisits : 0;
+  const ptVisits  = totalVisits - effIns;
+  const babyCfg   = getOfficeCfg();
+  const upfront   = ptVisits * babyCfg.upfront;
+  const monthly   = ptVisits * babyCfg.monthly;
+  const ins       = (carrier !== 'None' && effIns > 0) ? calcInsCost('baby', effIns) : null;
+
+  const totalUp = upfront + (ins?ins.insuredCost:0);
+  const totalMo = monthly + (ins?ins.insuredCost:0);
+
+  const symList = hasSymptoms ? [...symsSel].map(s=>s.replace(/^[\S]+\s/,'')).join(', ') : 'None — wellness visit';
+
+  showResult(`
+    <div class="rsec">
+      <div class="rlbl">Baby Care Plan</div>
+      <div class="plan-badge baby">
+        <div class="plan-title">${totalVisits} Visits / 90 Days</div>
+        <div class="plan-sub">${freqLabel} · ${hasSymptoms ? 'Symptomatic presentation' : 'Wellness / no symptoms'}</div>
+      </div>
+    </div>
+    <div class="info-box purple" style="margin-bottom:12px">
+      <span class="ico">📋</span>
+      <span><strong>Symptoms noted:</strong> ${symList}</span>
+    </div>
+    <div class="rsec">
+      <div class="rlbl">Visit Frequency</div>
+      <div class="tbl">
+        <div class="trow"><span class="lbl">Frequency</span><span class="val"><span class="fbadge ${freqBadge}">${freq}</span></span></div>
+        <div class="trow"><span class="lbl">Duration</span><span class="val">90 days / 3 months</span></div>
+        <div class="trow"><span class="lbl">Total visits</span><span class="val">${totalVisits}</span></div>
+        ${effIns ? `<div class="trow"><span class="lbl">Billed to insurance</span><span class="val ins">${effIns} visits</span></div>` : ''}
+        <div class="trow"><span class="lbl">Cash-pay visits</span><span class="val pat">${ptVisits}</span></div>
+      </div>
+    </div>
+    ${ins ? `
+    <div class="rsec">
+      <div class="rlbl">Insurance (${ins.carrier})</div>
+      <div class="ins-detail-box">
+        ${ins.breakdown.map(b=>`<div class="ins-detail-row"><span class="dl">${b.d}</span><span class="dv ${b.warn?'accent':''}">${$$(b.v)}</span></div>`).join('')}
+        <div class="ins-detail-row" style="border-top:2px solid var(--g200);font-weight:700"><span class="dl">Patient cost — insured visits</span><span class="dv pat">${$$(ins.insuredCost)}</span></div>
+      </div>
+    </div>` : ''}
+    <div class="rsec">
+      <div class="rlbl">Payment Options</div>
+      <div class="cmp">
+        <div class="cmp-opt best-baby">
+          <div class="opt-lbl">Pay In Full</div>
+          <div class="opt-price">${$$(upfront)}</div>
+          <div class="opt-sub">${ptVisits} × $${babyCfg.upfront.toFixed(2)}</div>
+          <div class="badge-best baby">BEST VALUE</div>
+        </div>
+        <div class="cmp-opt">
+          <div class="opt-lbl">Monthly Plan (3 payments)</div>
+          <div class="opt-price" style="color:var(--g800)">${$$(monthly/3)}</div>
+          <div class="opt-sub">${ptVisits} × $${babyCfg.monthly.toFixed(2)} · total ${$$(monthly)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="rsec">
+      <div class="rlbl">Grand Total — Patient Out-of-Pocket</div>
+      <div class="tbl">
+        <div class="trow tot"><span class="lbl">Pay In Full</span><span class="val">${$$(totalUp)}</span></div>
+        <div class="trow tot"><span class="lbl">Monthly Plan — 3 payments of</span><span class="val">${$$(totalMo/3)}</span></div>
+        <div class="trow"><span class="lbl" style="color:var(--g400);font-size:12px">Monthly plan total</span><span class="val" style="color:var(--g400);font-size:12px">${$$(totalMo)}</span></div>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">↺ Reset & Start New</button>
+  `);
+}
+
+// ─── PERSONAL INJURY CALCULATOR ──────────────────────────
+function calcPI() {
+  const neuro = togState['pi-neuro'];
+  const pip   = togState['pi-pip'];
+  const hosp  = togState['pi-hosp'];
+  const piCfg = getOfficeCfg();
+
+  if (neuro === undefined) { alert('Please indicate neurological signs.'); return; }
+  if (pip   === undefined) { alert('Please indicate PIP availability.'); return; }
+  if (hosp  === undefined) { alert('Please indicate if patient went to the hospital.'); return; }
+
+  // BI/UM needed when: no PIP, or PIP + hospital
+  const needBI = (pip === false) || (pip === true && hosp === true);
+  if (needBI && !val('pi-bi-amt')) { alert('Please select BI/UM coverage amount.'); return; }
+  const biAmt = needBI ? parseInt(val('pi-bi-amt')) : 999; // 999 = no limit
+
+  let totalChiroVisits, freqLabel, freqBadge;
+  let addShockwave = false;
+  let shockwaveReason = '';
+  let planNote = '';
+
+  if (pip === false) {
+    // ── NO PIP ────────────────────────────────────────────
+    if (biAmt === 0) {
+      // $10k or less (hospital or not): conservative plan
+      totalChiroVisits = 12;
+      freqLabel = '1x/week'; freqBadge = 'f1x';
+      addShockwave = false;
+      planNote = hosp
+        ? 'No PIP — patient went to hospital, BI/UM ≤ $10k. Hospital absorbed funds. Conservative plan, no shockwave.'
+        : 'No PIP — BI/UM ≤ $10k. Conservative plan, no shockwave.';
+    } else {
+      // BI/UM > $10k → neuro logic + shockwave
+      totalChiroVisits = neuro ? 36 : 24;
+      freqLabel = neuro ? '3x/week' : '2x/week';
+      freqBadge = neuro ? 'f3x' : 'f2x';
+      addShockwave = true;
+      shockwaveReason = hosp
+        ? 'No PIP, hospital visit, BI/UM > $10k — shockwave included.'
+        : 'No PIP, BI/UM > $10k — shockwave included.';
+    }
+  } else {
+    // ── PIP AVAILABLE ─────────────────────────────────────
+    if (hosp === false) {
+      // PIP + no hospital → neuro logic + shockwave
+      totalChiroVisits = neuro ? 36 : 24;
+      freqLabel = neuro ? '3x/week' : '2x/week';
+      freqBadge = neuro ? 'f3x' : 'f2x';
+      addShockwave = true;
+      shockwaveReason = 'PIP available, patient did not go to hospital — 6 shockwave sessions included.';
+    } else {
+      // PIP + hospital
+      if (biAmt === 0) {
+        // Hospital absorbed PIP funds: 36 visits / 3x/wk, no shockwave
+        totalChiroVisits = 36;
+        freqLabel = '3x/week'; freqBadge = 'f3x';
+        addShockwave = false;
+        planNote = 'PIP available but patient went to hospital with BI/UM ≤ $10k — hospital likely absorbed PIP funds. No shockwave.';
+      } else {
+        // PIP + hospital + >$10k: neuro logic + shockwave
+        totalChiroVisits = neuro ? 36 : 24;
+        freqLabel = neuro ? '3x/week' : '2x/week';
+        freqBadge = neuro ? 'f3x' : 'f2x';
+        addShockwave = true;
+        shockwaveReason = 'PIP available, BI/UM > $10k — shockwave included.';
+      }
+    }
+  }
+
+  // Mindful Chiropractic does not offer Shockwave
+  if (!piCfg.shockwave) { addShockwave = false; shockwaveReason = 'Shockwave Therapy is not offered at this location.'; }
+
+  const shockwaveHtml = addShockwave ? `
+    <div class="rsec">
+      <div class="rlbl">Additional Therapy</div>
+      <div class="therapy-b">
+        <div class="ti">⚡</div>
+        <div>
+          <div class="tt">Shockwave Therapy</div>
+          <div class="ts">6 sessions · 1× per week for 6 weeks · Covered by PI insurance</div>
+        </div>
+      </div>
+      <div class="info-box green" style="margin-top:8px">
+        <span class="ico">✅</span><span>${shockwaveReason}</span>
+      </div>
+    </div>` : `
+    <div class="rsec">
+      <div class="rlbl">Additional Therapy</div>
+      <div class="info-box orange">
+        <span class="ico">⚠️</span><span>No shockwave indicated. ${shockwaveReason}</span>
+      </div>
+    </div>`;
+
+  showResult(`
+    <div class="rsec">
+      <div class="rlbl">Personal Injury Care Plan</div>
+      <div class="pi-rec">
+        <div class="pi-title">${totalChiroVisits} Chiropractic Visits / 90 Days</div>
+        <div class="pi-sub">${freqLabel} · ${neuro ? 'Neurological signs present' : 'No neurological signs'} · All covered by PI insurance</div>
+      </div>
+    </div>
+    <div class="rsec">
+      <div class="rlbl">Visit Schedule</div>
+      <div class="tbl">
+        <div class="trow"><span class="lbl">Frequency</span><span class="val"><span class="fbadge ${freqBadge}">${freqLabel}</span></span></div>
+        <div class="trow"><span class="lbl">Duration</span><span class="val">90 days</span></div>
+        <div class="trow"><span class="lbl">Total chiro visits</span><span class="val ok">${totalChiroVisits}</span></div>
+        ${addShockwave ? `<div class="trow"><span class="lbl">Shockwave sessions</span><span class="val ok">6 (1/week × 6 weeks)</span></div>` : ''}
+      </div>
+    </div>
+    ${shockwaveHtml}
+    <div class="info-box orange" style="margin-bottom:8px">
+      <span class="ico">💼</span>
+      <span>Personal Injury case — no patient payment required. All chiropractic and applicable therapy covered by PI insurance (PIP / BI / UM).</span>
+    </div>
+    ${planNote ? `<div class="info-box blue"><span class="ico">ℹ️</span><span>${planNote}</span></div>` : ''}
+    <button class="reset-btn" onclick="resetAll()">↺ Reset & Start New</button>
+  `);
+}
+
+// ─── RESET ────────────────────────────────────────────────
+function resetAll() {
+  ['s-age','p-week','s-sublux','s-dur','pi-bi-amt'].forEach(id => {
+    const el = get(id); if (el) el.value = '';
+  });
+  const biSec = get('pi-bi-section'); if (biSec) biSec.classList.add('hidden');
+  Object.keys(togState).forEach(k => delete togState[k]);
+  document.querySelectorAll('.tog').forEach(t => t.className='tog');
+  areasSel.clear();
+  symsSel.clear();
+  document.querySelectorAll('.chip,.sym-chip').forEach(c=>c.classList.remove('on'));
+  // Re-render insurance blocks
+  ['std','preg','baby'].forEach(pfx => {
+    const c = get({std:'ins-s-render',preg:'ins-p-render',baby:'ins-b-render'}[pfx]);
+    if (c) renderInsBlock(pfx);
+  });
+  clearResults();
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+// Render insurance block for carrier selects in all non-PI modes
+// We use a slightly different approach: the insurance select and detail section
+// are dynamically rendered into the form's insurance div on init and mode switch.
+
+// Override the form structure: inject insurance render targets
+document.addEventListener('DOMContentLoaded', () => {
+  ['std','preg','baby'].forEach(pfx => renderInsBlock(pfx));
+});
+</script>
+</body>
+</html>
