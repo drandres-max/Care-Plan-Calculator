@@ -912,23 +912,23 @@ function calcPreg() {
   const totalUp = upfront + (ins?ins.insuredCost:0);
   const totalMo = monthly + (ins?ins.insuredCost:0);
 
-  // Payment schedule: one payment per month of care, last payment at week 36 (4 weeks before due date)
-  const numMonths    = Math.max(1, Math.ceil(weeksRemaining / 4));
-  const perMonth     = totalMo / numMonths;
-  const perMonthUp   = totalUp / numMonths; // pay-in-full has no monthly split but show for context
-  const lastPmtWeek  = Math.max(week, 36); // last payment at week 36 (4 wks before wk 40)
+  // Payment schedule: every 4 weeks from current week, last payment must be BEFORE week 36
+  const pmtWeeks = [];
+  for (let w = week; w < 36; w += 4) pmtWeeks.push(w);
+  if (pmtWeeks.length === 0) pmtWeeks.push(week); // already at/past week 36 — collect now
+  const numMonths   = pmtWeeks.length;
+  const perMonth    = totalMo / numMonths;
+  const lastPmtWeek = pmtWeeks[pmtWeeks.length - 1];
 
   // Build payment schedule rows
   let pmtRows = '';
-  for (let i = 0; i < numMonths; i++) {
-    const pmtWeek   = week + (i * 4);
-    const isLast    = i === numMonths - 1;
-    const label     = isLast ? `Payment ${i+1} (final — week 36, 4 wks before due date)` : `Payment ${i+1} — around week ${Math.min(pmtWeek, 36)}`;
-    pmtRows += `<div class="ins-detail-row" style="${isLast?'font-weight:600;background:#fdf2f8':''}">
-      <span class="dl">${label}</span>
-      <span class="dv ${isLast?'pink-val':''}">${$$(perMonth)}</span>
+  pmtWeeks.forEach((pmtWk, i) => {
+    const isLast = i === pmtWeeks.length - 1;
+    pmtRows += `<div class="ins-detail-row" style="${isLast ? 'font-weight:600;background:#fdf2f8' : ''}">
+      <span class="dl">Payment ${i+1} — Week ${pmtWk}${isLast ? ' (final)' : ''}</span>
+      <span class="dv ${isLast ? 'pink-val' : ''}">${$$(perMonth)}</span>
     </div>`;
-  }
+  });
 
   showResult(`
     <div class="rsec">
@@ -983,7 +983,7 @@ function calcPreg() {
         </div>
         ${pmtRows}
         <div class="ins-detail-row" style="background:#fdf2f8;border-top:2px solid #fbcfe8">
-          <span class="dl" style="font-weight:700;font-size:12px;color:var(--pink)">⚠️ Final payment collected at week 36 — 4 weeks before due date</span>
+          <span class="dl" style="font-weight:700;font-size:12px;color:var(--pink)">⚠️ Final payment collected at week ${lastPmtWeek} — ${40 - lastPmtWeek} week${40-lastPmtWeek!==1?'s':''} before due date</span>
           <span class="dv"></span>
         </div>
       </div>
