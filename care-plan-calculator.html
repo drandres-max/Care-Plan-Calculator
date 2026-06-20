@@ -783,13 +783,16 @@ function calcStd() {
   const isLong     = (dur==='months_l'||dur==='years');
   const isVeryLong = (dur==='years');
 
-  let highCx;
+  let highCx, highFreq;
   if (office === 'mindful') {
-    if (age < 20)       highCx = isVeryLong;                              // <20: symptoms >1yr → 3x/wk
-    else if (age <= 50) highCx = (sublux > 5 && degen===true && isLong);  // 20–50: sublux>5 + degen + >6mo → 3x/wk
-    else                highCx = (degen===true);                           // >50: degen present → 3x/wk
+    if (age < 20)       highCx = isVeryLong;
+    else if (age <= 50) highCx = (sublux > 5 && degen===true && isLong);
+    else                highCx = (degen===true);
+    highFreq = highCx; // Mindful: complex cases → 3x/week
   } else {
-    highCx = (age > 40 && sublux >= 5 && degen===true && isLong);         // Abundance: original logic
+    // Abundance: complex cases → 12 therapy sessions, always 2x/week
+    highCx   = (age > 40 && sublux >= 5 && degen===true && isLong);
+    highFreq = false;
   }
 
   const durLabel = {days:'days', weeks:'weeks', months_s:'1–6 months', months_l:'more than 6 months', years:'years'}[dur];
@@ -799,10 +802,9 @@ function calcStd() {
   }[a]||a)).join(', ');
 
   const inNetCarriers = ['Medicare','United Healthcare','VA','Aetna'];
-  // Complex cases: 36 visits 3x/week; youth/mild or standard: 24 visits 2x/week
-  const totalVisits = highCx ? 36 : 24;
-  const insVisits   = inNetCarriers.includes(carrier) ? (highCx ? 12 : 8) : 0;
-  const freqLabel   = highCx ? '3× per week' : '2× per week';
+  const totalVisits = highFreq ? 36 : 24;
+  const insVisits   = inNetCarriers.includes(carrier) ? (highFreq ? 12 : 8) : 0;
+  const freqLabel   = highFreq ? '3× per week' : '2× per week';
 
   // ── STANDARD PLAN ──────────────────────────────────────
   const therapySessions = highCx ? 12 : 6;
