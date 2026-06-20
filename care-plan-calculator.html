@@ -809,12 +809,19 @@ function calcStd() {
   // ── STANDARD PLAN ──────────────────────────────────────
   const therapySessions = highCx ? 12 : 6;
 
-  const hasLB = areasSel.has('low_back');
-  const hasSW = ['neck','shoulder','midback','headache','neuropathy','elbow','wrist'].some(a=>areasSel.has(a));
+  const hasLB       = areasSel.has('low_back');
+  const hasNeuro    = areasSel.has('neuropathy');
+  const hasSW       = ['neck','shoulder','midback','headache','neuropathy','elbow','wrist'].some(a=>areasSel.has(a));
   let tLines = [];
-  if (cfg.decompression && hasLB) tLines.push({name:'Spinal Decompression', icon:'🔽', rate:85,  sessions:therapySessions});
-  if (cfg.shockwave     && hasSW) tLines.push({name:'Shockwave Therapy',    icon:'⚡', rate:120, sessions:therapySessions});
-  if (!tLines.length && cfg.shockwave) tLines.push({name:'Shockwave Therapy', icon:'⚡', rate:120, sessions:therapySessions});
+  if (hasNeuro) {
+    // Neuropathy: always 12 shockwave + 12 spinal decompression
+    if (cfg.shockwave)     tLines.push({name:'Shockwave Therapy',    icon:'⚡', rate:120, sessions:12});
+    if (cfg.decompression) tLines.push({name:'Spinal Decompression', icon:'🔽', rate:85,  sessions:12});
+  } else {
+    if (cfg.decompression && hasLB) tLines.push({name:'Spinal Decompression', icon:'🔽', rate:85,  sessions:therapySessions});
+    if (cfg.shockwave     && hasSW) tLines.push({name:'Shockwave Therapy',    icon:'⚡', rate:120, sessions:therapySessions});
+    if (!tLines.length && cfg.shockwave) tLines.push({name:'Shockwave Therapy', icon:'⚡', rate:120, sessions:therapySessions});
+  }
 
   const complexityNote = highCx
     ? (() => {
