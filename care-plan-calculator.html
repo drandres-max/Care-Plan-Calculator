@@ -257,7 +257,7 @@ select:focus,input:focus{outline:none;border-color:var(--blue-l);box-shadow:0 0 
         </select>
       </div>
       <div class="fg">
-        <label>Area(s) Affected</label>
+        <label>Chief Complaint</label>
         <div class="area-grid">
           <div class="chip" data-a="low_back"   onclick="toggleArea(this,'s')">🔽 Low Back</div>
           <div class="chip" data-a="neck"        onclick="toggleArea(this,'s')">🔼 Neck</div>
@@ -387,7 +387,7 @@ select:focus,input:focus{outline:none;border-color:var(--blue-l);box-shadow:0 0 
 // ─── STATE ───────────────────────────────────────────────
 let mode = 'std';
 const togState = {};
-const areasSel = new Set();
+let areasSel = null; // single chief complaint
 const symsSel  = new Set();
 
 // ─── OFFICE CONFIG ───────────────────────────────────────
@@ -582,8 +582,9 @@ function setTog(key, val) {
 
 function toggleArea(el, pfx) {
   const a = el.dataset.a;
-  if (areasSel.has(a)) { areasSel.delete(a); el.classList.remove('on'); }
-  else                  { areasSel.add(a);    el.classList.add('on'); }
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  if (areasSel === a) { areasSel = null; }
+  else                { areasSel = a; el.classList.add('on'); }
 }
 
 function toggleSym(el) {
@@ -769,7 +770,7 @@ function calcStd() {
   const dur     = val('s-dur');
   const degen   = togState['s-degen'];
   const carrier = val('std-carrier');
-  const areas   = [...areasSel];
+  const areas   = areasSel ? [areasSel] : [];
   const cfg     = getOfficeCfg();
 
   if (!age)                 { alert('Please enter a valid age.'); return; }
@@ -809,9 +810,9 @@ function calcStd() {
   // ── STANDARD PLAN ──────────────────────────────────────
   const therapySessions = highCx ? 12 : 6;
 
-  const hasLB       = areasSel.has('low_back');
-  const hasNeuro    = areasSel.has('neuropathy');
-  const hasSW       = ['neck','shoulder','midback','headache','neuropathy','elbow','wrist'].some(a=>areasSel.has(a));
+  const hasLB       = areasSel === 'low_back';
+  const hasNeuro    = areasSel === 'neuropathy';
+  const hasSW       = ['neck','shoulder','midback','headache','neuropathy','elbow','wrist'].includes(areasSel);
   let tLines = [];
   if (hasNeuro) {
     // Neuropathy: always 12 shockwave + 12 spinal decompression
@@ -1215,7 +1216,7 @@ function resetAll() {
   const biSec = get('pi-bi-section'); if (biSec) biSec.classList.add('hidden');
   Object.keys(togState).forEach(k => delete togState[k]);
   document.querySelectorAll('.tog').forEach(t => t.className='tog');
-  areasSel.clear();
+  areasSel = null;
   symsSel.clear();
   document.querySelectorAll('.chip,.sym-chip').forEach(c=>c.classList.remove('on'));
   // Re-render insurance blocks
